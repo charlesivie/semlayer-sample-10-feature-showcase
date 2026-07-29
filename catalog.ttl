@@ -1,0 +1,16 @@
+# Scenario 10 — SHACL FEATURE showcase.
+# One ontology + a shapes.ttl exercising a wide spread of SHACL constraints:
+# datatype, pattern, minLength, min/maxCount, minInclusive/maxInclusive, sh:in,
+# sh:class, sh:nodeKind, sh:or, nested sh:node, and a SHACL-SPARQL constraint.
+# Validate with abox/10-features/{good,bad}.ttl — good conforms, bad trips them all.
+
+@prefix owl:  <http://www.w3.org/2002/07/owl#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix ex:   <https://example.org/shop#> .
+
+<https://example.org/shop> a owl:Ontology ;
+    rdfs:label "Shop catalog (feature showcase)" .
+
+ex:Product  a owl:Class ; rdfs:label "Product" .
+ex:Category a owl:Class ; rdfs:label "Category" .
+ex:Offer    a owl:Class ; rdfs:label "Offer" .

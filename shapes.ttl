@@ -1,0 +1,92 @@
+# A broad sweep of SHACL Core + SHACL-SPARQL constraints. Each property shape
+# carries an sh:message so the report reads clearly.
+
+@prefix sh:   <http://www.w3.org/ns/shacl#> .
+@prefix xsd:  <http://www.w3.org/2001/XMLSchema#> .
+@prefix ex:   <https://example.org/shop#> .
+
+ex:ProductShape a sh:NodeShape ;
+    sh:targetClass ex:Product ;
+
+    # datatype + pattern + cardinality
+    sh:property [
+        sh:path ex:sku ;
+        sh:minCount 1 ; sh:maxCount 1 ;
+        sh:datatype xsd:string ;
+        sh:pattern "^SKU-[0-9]{4}$" ;
+        sh:message "sku must be exactly one string matching SKU-#### ."
+    ] ;
+
+    # minLength
+    sh:property [
+        sh:path ex:title ;
+        sh:minCount 1 ;
+        sh:datatype xsd:string ;
+        sh:minLength 3 ;
+        sh:message "title must be a string of at least 3 characters."
+    ] ;
+
+    # numeric range
+    sh:property [
+        sh:path ex:price ;
+        sh:minCount 1 ; sh:maxCount 1 ;
+        sh:datatype xsd:decimal ;
+        sh:minInclusive 0 ;
+        sh:message "price must be a decimal >= 0."
+    ] ;
+
+    # sh:in enumeration
+    sh:property [
+        sh:path ex:status ;
+        sh:in ( "active" "discontinued" ) ;
+        sh:message "status must be 'active' or 'discontinued'."
+    ] ;
+
+    # sh:class (value must be an instance of ex:Category)
+    sh:property [
+        sh:path ex:category ;
+        sh:minCount 1 ;
+        sh:class ex:Category ;
+        sh:message "category must reference an ex:Category."
+    ] ;
+
+    # bounded integer
+    sh:property [
+        sh:path ex:rating ;
+        sh:datatype xsd:integer ;
+        sh:minInclusive 0 ; sh:maxInclusive 5 ;
+        sh:message "rating, if present, must be an integer 0..5."
+    ] ;
+
+    # nested node shape
+    sh:property [
+        sh:path ex:offer ;
+        sh:node ex:OfferShape ;
+        sh:message "offer must be a valid Offer (see OfferShape)."
+    ] ;
+
+    # sh:or — must provide at least one contact method
+    sh:or (
+        [ sh:path ex:email ; sh:minCount 1 ]
+        [ sh:path ex:phone ; sh:minCount 1 ]
+    ) ;
+
+    # SHACL-SPARQL constraint — cross-property rule
+    sh:sparql [
+        sh:message "discountPrice must not exceed price." ;
+        sh:select """
+            SELECT $this ?value WHERE {
+                $this <https://example.org/shop#price> ?p .
+                $this <https://example.org/shop#discountPrice> ?value .
+                FILTER(?value > ?p)
+            }
+        """
+    ] .
+
+ex:OfferShape a sh:NodeShape ;
+    sh:property [
+        sh:path ex:validUntil ;
+        sh:minCount 1 ;
+        sh:datatype xsd:date ;
+        sh:message "an Offer must have a validUntil date."
+    ] .
